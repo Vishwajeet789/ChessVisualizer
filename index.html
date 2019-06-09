@@ -1,0 +1,817 @@
+<html>
+<head>
+    <title>Chess Match</title>
+    <link rel="stylesheet" href="css/chessboard-0.3.0.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="js/chessboard-0.3.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+
+</head>
+
+<body>
+
+
+	
+	<!--HTML part-->
+    <div id="board" style="width: 450px"></div>
+    <input type="button" id="startBtn" value="Start" />
+    <input type="button" id="getPositionBtn" value="Evaluate position" />
+    <button onclick="showTerritory();"> Possible Moves</button>
+    <button onclick="removeGreySquares();">Hide</button>
+    <button onclick="control();">Territory/Control</button>
+    <button onclick="showExtendedTerritory();"> Extended Territory</button>
+    <div id="relative"> </div>
+    <div id="phase">
+    <input type="radio" name="phase" value="Opening"> Opening 
+    <input type="radio" name="phase" value="EndGame"> EndGame
+    <br><input type="text" name="nextMove" id="nextMove"> 
+    <button onclick="makeMove();"> Make a move</button>
+	<button onclick="undo();"> Undo</button>
+    <input type="text" id="setPosition" > 
+    <button> Set up Position</button>
+	</div>
+
+
+
+
+	<!--Javascript part-->
+    <script type="text/javascript">
+
+
+		        var board = ChessBoard('board', {
+		  //orientation: 'black',
+		  draggable: true,
+		  dropOffBoard: 'trash',
+		  sparePieces: true
+		});
+
+		        var chess = new Chess();
+
+		        	var b_evaluation;
+		        	var w_evaluation;
+
+
+		        	var square_color = [
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	];
+
+		        	
+
+
+		        	var PawnTable = [
+[0	,	0	,	0	,	0	,	0	,	0	,	0	,	0]	,
+[10	,	10	,	0	,	-10	,	-10	,	0	,	10	,	10]	,
+[5	,	5	,	0	,	5	,	5	,	-10	,	0	,	5]	,
+[10	,	0	,	30	,	30	,	30	,	5	,	0	,	5]	,
+[0	,	5	,	15	,	10	,	10	,	5	,	5	,	5]	,
+[20	,	35	,	10	,	20	,	20	,	10	,	20	,	30]	,
+[40	,	50	,	40	,	40	,	40	,	40	,	50	,	40]	,
+[0	,	0	,	0	,	0	,	0	,	0	,	0	,	0]
+];
+
+
+var KnightTable = [
+[-50	,	-40	,	-30	,	-30	,	-30	,	-30	,	-40	,	-50]	,
+[-40	,	-20	,	0	,	0	,	0	,	0	,	-20	,	-40]	,
+[-30	,	0	,	10	,	15	,	15	,	10	,	0	,	-30]	,
+[-30	,	5	,	15	,	20	,	20	,	15	,	5	,	-30]	,
+[-30	,	0	,	15	,	20	,	20	,	15	,	0	,	-30]	,
+[-30	,	5	,	10	,	15	,	15	,	10	,	5	,	-30]	,
+[-40	,	-20	,	0	,	5	,	5	,	0	,	-20	,	-40]	,
+[-50	,	-40	,	-30	,	-30	,	-30	,	-30	,	-40	,	-50]		
+];
+
+
+var BishopTable = [
+[-20	,	-10	,	-10	,	0	,	0	,	-10	,	-10	,	-20]	,
+[-10	,	5	,	0	,	0	,	0	,	0	,	5	,	-10]	,
+[-10	,	10	,	10	,	10	,	10	,	10	,	10	,	-10]	,
+[-10	,	0	,	10	,	10	,	10	,	10	,	0	,	-10]	,
+[-10	,	5	,	5	,	10	,	10	,	5	,	5	,	-10]	,
+[-10	,	0	,	5	,	10	,	10	,	5	,	0	,	-10]	,
+[-10	,	0	,	0	,	0	,	0	,	0	,	0	,	-10]	,
+[-20	,	-10	,	-5	,	-5	,	-5	,	-5	,	-10	,	-20]	
+];
+
+var RookTable = [
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]	,
+[25	,	25	,	25	,	25	,	25	,	25	,	25	,	25]	,
+[0	,	0	,	5	,	10	,	10	,	5	,	0	,	0]		
+];
+
+var KingO = [	
+	[0	,	15	,	15	,	-10	,	-10	,	0	,	20	,	10]	,
+	[-30	,	-30	,	-30	,	-30	,	-30	,	-30	,	-30	,	-30]	,
+	[-50	,	-50	,	-50	,	-50	,	-50	,	-50	,	-50	,	-50]	,
+	[-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70]	,
+	[-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70]	,
+	[-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70]	,
+	[-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70]	,
+	[-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70	,	-70]		
+];
+
+
+var KingE = [	
+	[-50	,	-10	,	0	,	0	,	0	,	0	,	-10	,	-50]	,
+	[-10,	0	,	10	,	10	,	10	,	10	,	0	,	-10]	,
+	[0	,	10	,	20	,	20	,	20	,	20	,	10	,	0]	,
+	[0	,	10	,	20	,	40	,	40	,	20	,	10	,	0]	,
+	[0	,	10	,	20	,	40	,	40	,	20	,	10	,	0]	,
+	[0	,	10	,	20	,	20	,	20	,	20	,	10	,	0]	,
+	[-10,	0	,	10	,	10	,	10	,	10	,	0	,	-10]	,
+	[-50	,	-10	,	0	,	0	,	0	,	0	,	-10	,	-50]	
+];
+
+
+
+				function clickGetPositionBtn() {
+
+					b_evaluation=0;
+					w_evaluation=0;
+			 // console.log("Current position as an Object:");
+			  //console.log(board.position());
+
+			  var entries = Object.entries(board.position());
+
+
+							  for (const [square, piece] of entries) {
+				  evaluate(piece+square);
+				}
+
+				//console.log(w_evaluation);
+				//console.log(b_evaluation);
+
+				var moves = chess.moves();
+				//var length = Array.length(moves);
+				var size ;
+				console.log("Current player's mobility: "+Object.keys(moves).length);
+				//console.log(moves);
+
+
+
+
+			  //console.log("Current position as a FEN string:");
+			 // console.log(board.fen());
+
+			  //console.log("Evaluation of current position is :");
+			  //console.log((w_evaluation-b_evaluation)/100);
+
+			  document.getElementById("relative").innerHTML="Relative Difference:" + ((w_evaluation - b_evaluation)/100) ;
+
+
+			}
+
+
+				function evaluate(s){
+					
+					const pawnValue =100;
+					const bishopValue = 330;
+					const queenValue=900;
+					const knightValue = 320;
+					const rookValue = 525;
+					const kingValue = 2000;
+
+					
+
+					if(s.charAt(0)=='w'){
+						
+
+					switch(s.charAt(1)){
+
+						case 'P':w_evaluation = w_evaluation+pawnValue +PawnTable[s.charAt(3)-1][s.charCodeAt(2)-97]; 
+
+										break;
+
+						case 'N':w_evaluation = w_evaluation + knightValue +KnightTable[s.charAt(3)-1][s.charCodeAt(2)-97]; 
+
+									break;
+
+						case 'B':w_evaluation = w_evaluation+bishopValue +BishopTable[s.charAt(3)-1][s.charCodeAt(2)-97]; 
+
+										break;
+
+						case 'R':w_evaluation = w_evaluation+rookValue +RookTable[s.charAt(3)-1][s.charCodeAt(2)-97]; 
+
+										break;
+						case 'Q':w_evaluation = w_evaluation+queenValue ; 
+
+										break;
+
+						case 'K': 	var phaseOfGame =$("input[type='radio'][name='phase']:checked").val();
+
+									if(phaseOfGame=='Opening')
+									w_evaluation = w_evaluation+kingValue +KingO[s.charAt(3)-1][s.charCodeAt(2)-97]; 
+
+									else if(phaseOfGame=='EndGame')
+									w_evaluation = w_evaluation+kingValue +KingE[s.charAt(3)-1][s.charCodeAt(2)-97];	
+
+										break;
+
+
+
+						}
+
+					}
+
+					else{
+
+
+							switch(s.charAt(1)){
+
+						case 'P':b_evaluation = b_evaluation+pawnValue +PawnTable[7-(s.charAt(3)-1)][(s.charCodeAt(2)-97)]; 
+
+										break;
+
+						case 'N':b_evaluation = b_evaluation + knightValue +KnightTable[7-(s.charAt(3)-1)][7-(s.charCodeAt(2)-97)]; 
+
+									break;
+
+						case 'B':b_evaluation = b_evaluation+bishopValue +BishopTable[7-(s.charAt(3)-1)][7-(s.charCodeAt(2)-97)]; 
+
+										break;
+
+						case 'R':b_evaluation = b_evaluation+rookValue +RookTable[7-(s.charAt(3)-1)][7-(s.charCodeAt(2)-97)]; 
+
+										break;
+						case 'Q':b_evaluation = b_evaluation+queenValue ; 
+
+										break;
+						case 'K':var phaseOfGame =$("input[type='radio'][name='phase']:checked").val();
+
+									if(phaseOfGame=='Opening')
+									b_evaluation = b_evaluation+kingValue +KingO[7-(s.charAt(3)-1)][(s.charCodeAt(2)-97)]; 
+
+									else if(phaseOfGame=='EndGame')
+									b_evaluation = b_evaluation+kingValue +KingE[7-(s.charAt(3)-1)][7-(s.charCodeAt(2)-97)];	
+
+										break;
+
+
+					}
+
+						
+
+				}
+
+				
+}
+
+	function makeMove(){
+			removeGreySquares();
+
+			if (chess.game_over() === true ||
+    chess.in_draw() === true) 
+				return;
+
+
+			var move = $("#nextMove").val();
+
+			chess.move(move);
+			board.position(chess.fen());
+	}
+
+
+
+			//create functions using JQuery
+
+			//removes all grey squares?
+			var removeGreySquares = function() {
+		  $('#board .square-55d63').css('background', '');
+		};
+
+			//make a particular square grey
+			var greySquare = function(square) {
+			  var squareEl = $('#board .square-' + square);
+			  
+			  var background = '#86a666';
+			  if (squareEl.hasClass('black-3c85d') === true) {
+			    background =  '#696969';
+			  }
+
+			  squareEl.css('background', background);
+			};
+
+			//make a particular square grey
+			var lightGreySquare = function(square) {
+			  var squareEl = $('#board .square-' + square);
+			  
+			  var background = '#c2c2c2'; //Tint of #a9a9a9
+			  if (squareEl.hasClass('black-3c85d') === true) {
+			    background = '#969696'; //Tint of #696969
+			  }
+
+			  squareEl.css('background', background);
+			};
+
+			var purpleSquare = function(square) {
+			  var squareEl = $('#board .square-' + square);
+			  
+			  var background = '#9f90b0'; //Tint of #a9a9a9
+			  if (squareEl.hasClass('black-3c85d') === true) {
+			    background = '#7d4a8d'; //Tint of #696969
+			  }
+
+			  squareEl.css('background', background);
+			};
+
+
+		function showTerritory(){
+			
+			var moves = chess.moves();
+
+			  // game over
+			  if (moves.length === 0) return;
+
+			  var index ;
+
+			  for( index=0;index<moves.length;index++)
+			  {
+			  	var move = moves[index];
+
+			  	if (move.charAt(move.length-1)!='+')
+				  	move = move.charAt(move.length-2) + move.charAt(move.length-1);
+				else move = move.charAt(move.length-3) + move.charAt(move.length-2);
+
+			  	greySquare(move);
+			  }
+
+
+			 
+
+		}
+
+		
+		function showExtendedTerritory(){
+
+
+
+			//pass my move to opponent 
+
+			var fen = chess.fen();
+			var currentfen =fen;
+			console.log(currentfen);
+
+			//sanatize two pawn moves
+
+			if(fen.search(/\s.\d\s/) != -1)
+				fen = fen.replace(/\s.\d\s/, " - ");
+
+			console.log(fen);
+
+			if(fen.search(" b ")!= -1)
+				fen = fen.replace(" b ", " w "); 
+
+			else if(fen.search(" w ")!= -1)
+				fen = fen.replace(" w ", " b "); 
+
+						console.log(fen);
+
+			var index,index2;
+			chess.load(fen); //pass the move to opponent
+			var moves = chess.moves(); //get his moves
+
+			console.log(moves);
+
+			  for( index=0;index<moves.length;index++)
+			  {
+			  	var move = moves[index];
+
+			  	//make opponent's move
+			  	chess.move(move);
+
+			  	//Get my moves 
+				var moves2 = chess.moves();			  				  	
+
+				// highlight all my moves
+				for( index2=0;index2<moves2.length;index2++)
+				  {
+				  	var move2 = moves2[index2];
+				  	if(move2!=null)
+				  	{
+				  	if (move2.charAt(move2.length-1)!='+')
+							  	move2 = move2.charAt(move2.length-2) + move2.charAt(move2.length-1);
+							  else move2 = move2.charAt(move2.length-3) + move2.charAt(move2.length-2);
+				  	}
+				  	lightGreySquare(move2); 
+				  }
+
+				chess.undo();
+				 //undo my opponent's move.
+
+			  }
+
+			  chess.load(currentfen); //return back the position to me
+
+			  showTerritory();
+
+		}
+
+
+
+		function control(){
+
+			var entries = Object.entries(board.position());
+
+
+					for (const [square, piece] of entries) {
+				  attackedSquares(piece+square);
+
+
+				}
+		}
+
+
+		function attackedSquares(s){
+			//console.log(s);
+
+			if(s.charAt(0)=='w' && (chess.fen().search(" w ") != -1) )
+				{
+					//white pawns
+					if (s.charAt(1)=='P'){
+						if ( (s.charAt(2)=='a') && (parseInt(s.charAt(3))<8) )
+							{
+								var t = parseInt(s.charAt(3));
+								t++;
+								greySquare('b'+t);
+							}
+						else if ( (s.charAt(2)=='h') && (parseInt(s.charAt(3))<8) )
+							{
+								var t = parseInt(s.charAt(3));
+								t++;
+								greySquare('g'+t);
+							}
+						else if (parseInt(s.charAt(3))<8)
+							{
+								var t = parseInt(s.charAt(3));
+								t++; var c = String.fromCharCode(s.charCodeAt(2) + 1);
+								//console.log(c);
+								greySquare(c+t);
+								c = String.fromCharCode(s.charCodeAt(2) - 1);
+								greySquare(c+t);
+							}
+
+					}
+
+					else{
+						if (s.charAt(1)=='N')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= knightMoves(sqr,1);
+										
+							}
+
+							else if (s.charAt(1)=='R')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= rookMoves(sqr,1);
+										
+							}
+
+							else if (s.charAt(1)=='B')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= bishopMoves(sqr,1);
+										
+							}
+
+							else if (s.charAt(1)=='Q')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										rookMoves(sqr,1);
+										var moves= bishopMoves(sqr,1);
+										
+							}
+
+
+							else {
+
+						var sqr = s.charAt(2) +s.charAt(3);
+							//console.log(sqr);
+						var moves = chess.moves({square: sqr});
+
+							if (moves.length === 0) return;
+							console.log(moves);						
+
+						  var index ;
+
+						for( index=0;index<moves.length;index++)
+							  {
+							  	var move = moves[index];
+
+							  	if (move.charAt(move.length-1)!='+')
+							  	move = move.charAt(move.length-2) + move.charAt(move.length-1);
+							  else move = move.charAt(move.length-3) + move.charAt(move.length-2);
+
+							  	greySquare(move);
+							  }
+							}
+						}
+
+				}
+				//all black pieces
+			if(s.charAt(0)=='b' && (chess.fen().search(" b ") != -1))
+			{
+				//black pawns
+					if (s.charAt(1)=='P'){
+						if ( (s.charAt(2)=='a') && (parseInt(s.charAt(3))>0) )
+							{
+								var t = parseInt(s.charAt(3));
+								t--;
+								purpleSquare('b'+t);
+							}
+						else if ( (s.charAt(2)=='h') && (parseInt(s.charAt(3))>0) )
+							{
+								var t = parseInt(s.charAt(3));
+								t--;
+								purpleSquare('g'+t);
+							}
+						else if (parseInt(s.charAt(3))>0)
+							{
+								var t = parseInt(s.charAt(3));
+								t--; var c = String.fromCharCode(s.charCodeAt(2) + 1);
+								//console.log(c);
+								purpleSquare(c+t);
+								c = String.fromCharCode(s.charCodeAt(2) - 1);
+								purpleSquare(c+t);
+							}
+
+					}
+
+					//other black pieces than pawn 
+					else{
+							if (s.charAt(1)=='N')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= knightMoves(sqr,0);
+										
+							}
+
+							else if (s.charAt(1)=='R')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= rookMoves(sqr,0);
+										
+							}
+
+							else if (s.charAt(1)=='B')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										var moves= bishopMoves(sqr,0);
+										
+							}
+
+							else if (s.charAt(1)=='Q')
+							{
+										var sqr = s.charAt(2) +s.charAt(3);
+										rookMoves(sqr,0);
+										var moves= bishopMoves(sqr,0);
+										
+							}
+
+
+							else {
+
+									var sqr = s.charAt(2) +s.charAt(3);
+										//console.log(sqr);
+									var moves = chess.moves({square: sqr});
+									if (moves.length === 0) return;
+										
+										console.log(moves);		
+
+									  var index ;
+
+									for( index=0;index<moves.length;index++)
+										  {
+										  	var move = moves[index];
+										  	if (move.charAt(move.length-1)!='+')
+										  	move = move.charAt(move.length-2) + move.charAt(move.length-1);
+										  else move = move.charAt(move.length-3) + move.charAt(move.length-2);
+
+										  	purpleSquare(move);
+										  }
+							}
+
+						}
+
+			}
+
+		}
+
+		function knightMoves(s,color) {
+
+			//offset. All 8 possible moves of a knight.
+			var X = [ 2, 1, -1, -2, -2, -1, 1, 2 ]; 
+        var Y = [ 1, 2, 2, 1, -1, -2, -2, -1 ]; 
+        var pos=[]; //Not Used currently
+
+        p = parseInt([s.charCodeAt(0)-97]);
+        q= parseInt([s.charAt(1)]);
+        var c; var x;var y;
+
+        	for (var i = 0; i < 8; i++) { 
+  
+            // Position of knight after move 
+            x = p + X[i]; 
+            y = q + Y[i]; 
+            
+  
+            // highlight the controlled squared.
+            if (x >= 0 && y >= 0 && x <= 8 && y <= 8 ) 
+                {
+                	//store values in an array
+                	c = String.fromCharCode(x + 97);
+                	//console.log(c+y);
+                	if(color===0) //Black Piece
+                	purpleSquare(c+y);
+                	else			//else white piece
+                	greySquare(c+y); 
+                }
+        } 
+
+        	return pos;
+
+		}
+
+		function rookMoves(s,color){
+
+			
+			//get position of all pieces
+			var entries = Object.entries(board.position());
+			var pos=[];
+
+					for (const [square, piece] of entries) {
+				  pos.push(square);
+				}
+
+			p = parseInt([s.charCodeAt(0)-97]); //x
+        	q= parseInt([s.charAt(1)-1]);		//y
+        	var i; var c;
+        	
+        	//console.log(pos);
+
+        		//vertical up
+        		//console.log(q+1);
+	        	for (i = q+1; i < 8; i++) 
+	        	{ 
+		        		c = String.fromCharCode(p + 97);
+	                	if(color===0)
+	                	purpleSquare(c+ (1+i) );
+	                else greySquare(c+ (1+i) );
+
+	                	if(pos.indexOf(c+ (1+i)) != -1)
+	                		break;	
+
+	        	}
+	        	//vertical down
+	        	for (i = q-1; i >= 0; i--) 
+	        	{ 
+		        		c = String.fromCharCode(p + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (1+i) );
+	                else greySquare(c+ (1+i) );
+
+	                	if(pos.indexOf(c+ (1+i)) != -1)
+	                		break;
+
+	        	}
+
+	        	//horizontal right
+	        	for (i = p+1; i < 8; i++) 
+	        	{ 
+		        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (1+q) );
+	                else greySquare(c+ (1+q) );;
+
+	                if(pos.indexOf(c+ (1+q) ) != -1)
+	                		break;
+	                	
+
+	        	}
+
+	        	//horizontal left
+	        	for (i = p-1; i >= 0; i--) 
+	        	{ 
+		        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (1+q) );
+	                else greySquare(c+ (1+q) );;
+
+	                if(pos.indexOf(c+ (1+q) ) != -1)
+	                		break;
+	                	
+
+	        	}
+  
+
+		}
+
+
+		function bishopMoves(s,color){
+
+			//get position of all pieces
+			var entries = Object.entries(board.position());
+			var pos=[];
+
+					for (const [square, piece] of entries) {
+				  pos.push(square);
+				}
+
+			p = parseInt([s.charCodeAt(0)-97]); //x of piece
+        	q= parseInt([s.charAt(1)-1]);		//y of piece
+        	var i,j; var c;
+        	//console.log(p+" "+q);
+
+        	//top right 
+        	for( i = p+1,j=q+1 ; i <8 && j< 8;i++,j++){
+        		//console.log(i);
+
+        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (j+1) );
+	                else greySquare(c+ (j+1));
+
+	                if(pos.indexOf(c+ (j+1) ) != -1)
+	                		break;	              
+	                
+        	}
+
+        	//top left
+        	for( i = p-1,j=q+1 ; i >=0 && j<8;i--,j++){
+        		//console.log(i);
+
+        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (j+1) );
+	                else greySquare(c+ (j+1));
+
+	                if(pos.indexOf(c+ (j+1) ) != -1)
+	                		break;	              
+	                
+        	}
+
+        	//bottom right 
+        	for( i = p+1,j=q-1 ; i <8 && j>=0;i++,j--){
+        		//console.log(i);
+
+        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (j+1) );
+	                else greySquare(c+ (j+1));
+
+	                if(pos.indexOf(c+ (j+1) ) != -1)
+	                		break;	              
+	                
+        	}
+
+        	//bottom left 
+        	for( i = p-1,j=q-1 ; i >=0 && j>=0;i--,j--){
+        		//console.log(i);
+
+        		c = String.fromCharCode(i + 97);
+		        		if(color===0)
+	                	purpleSquare(c+ (j+1) );
+	                else greySquare(c+ (j+1));
+
+	                if(pos.indexOf(c+ (j+1) ) != -1)
+	                		break;	              
+	                
+        	}
+
+
+
+		}
+
+
+		function undo(){
+			chess.undo();
+			board.position(chess.fen());
+
+		} 
+
+	function reset(){
+		board.start();
+		chess.reset();
+	}
+
+
+	$('#getPositionBtn').on('click', clickGetPositionBtn);
+
+	$('#startBtn').on('click', reset);
+    </script>
+
+
+</body>
+</html>
