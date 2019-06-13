@@ -1,7 +1,37 @@
+<!--Previously done TO-DOs--> 
+<!--Take into account the batteries created by the pieces in the generate move functions--> 
+<!-- Implement functionality- move pieces with mouse|| DONE! --> 
+
+<!--TO-DO--> 
+<!--TO-DO--> 
+
 <html>
 <head>
     <title>Chess Match</title>
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
+    <style>
+    	button{
+		   border: 1px solid black;
+		    font-size: 18px;
+		    margin: 1px;
+		}
+
+		button.big{
+		   border: 1px solid black;
+		    font-size: 18px;
+		    margin: 1px;
+		}
+
+		input{
+		   border: 1px solid black;
+		    font-size: 18px;
+		}
+
+		input.big{
+		   border: 1px solid black;
+		    font-size: 18px;
+		}
+    </style>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="js/chessboard-0.3.0.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
@@ -14,19 +44,23 @@
 	
 	<!--HTML part-->
     <div id="board" style="width: 450px"></div>
-    <input type="button" id="startBtn" value="Start" />
-    <input type="button" id="getPositionBtn" value="Evaluate position" />
-    <button onclick="showTerritory();"> Possible Moves</button>
+    <input class ="big "type="button" id="startBtn" value="Start" />
+    <button onclick="flipp();">↻</button>
+    <button onclick="captureAndChecks();">Show Captures/Checks</button>
     <button onclick="removeGreySquares();">Hide</button>
     <button onclick="control();">Territory/Control</button>
-    <button onclick="showExtendedTerritory();"> Extended Territory</button>
+    <button onclick="showTerritory();"> Possible Moves</button> 	
+    <button onclick="showExtendedTerritory();"> Extended Territory</button> <br>
+    <button class="big" onclick="undo();"> Undo</button>
+    <button onclick="MCTS();"> MCTS</button>
+ 	<br> <br> <br>
     <div id="relative"> </div>
     <div id="phase">
+    <input type="button" id="getPositionBtn" value="Evaluate position" />
     <input type="radio" name="phase" value="Opening"> Opening 
     <input type="radio" name="phase" value="EndGame"> EndGame
     <br><input type="text" name="nextMove" id="nextMove"> 
     <button onclick="makeMove();"> Make a move</button>
-	<button onclick="undo();"> Undo</button>
     <input type="text" id="setPosition" > 
     <button> Set up Position</button>
 	</div>
@@ -42,7 +76,10 @@
 		  //orientation: 'black',
 		  draggable: true,
 		  dropOffBoard: 'trash',
-		  sparePieces: true
+		  sparePieces: true,
+		  onDragStart: onDragStart,
+		  onDrop: onDrop,
+		  onSnapEnd: onSnapEnd
 		});
 
 		        var chess = new Chess();
@@ -286,10 +323,12 @@ var KingE = [
 
 			//create functions using JQuery
 
-			//removes all grey squares?
+			//removes all grey squares
 			var removeGreySquares = function() {
 		  $('#board .square-55d63').css('background', '');
 		};
+
+
 
 			//make a particular square grey
 			var greySquare = function(square) {
@@ -327,7 +366,165 @@ var KingE = [
 			};
 
 
+
+
+
+			function greenSquare(square,shade){
+					
+					var squareEl = $('#board .square-' + square);
+
+					if (shade==1) { //light green
+
+						var background = '#88fa4e'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#88fa4e'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade==2) { //medium green
+						
+						var background = '#61d836'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#61d836'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade==3) { //dark green
+						
+						var background = '#1db100'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#1db100'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade>=4) { //really dark green
+						
+						var background = '#017100'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#017100'; //Tint of #696969
+						  }
+
+
+					}
+			  
+			  
+
+			  squareEl.css('background', background);
+
+			}
+
+
+				function redSquare(square,shade){
+					
+					var squareEl = $('#board .square-' + square);
+
+					if (shade==-1) { //light red
+
+						var background = '#ff968d'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#ff968d'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade==-2) { //medium red
+						
+						var background = '#ff644e'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#ff644e'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade==-3) { //dark red
+						
+						var background = '#ee220c'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#ee220c'; //Tint of #696969
+						  }
+
+
+					}
+
+					else if (shade<=-4) { //really dark red
+						
+						var background = '#b51700'; //Tint of #a9a9a9
+
+						if (squareEl.hasClass('black-3c85d') === true) {
+						    background = '#b51700'; //Tint of #696969
+						  }
+
+
+					}
+			  
+			  
+
+			  squareEl.css('background', background);
+
+			}
+
+
+			function yellowSquare(square){
+
+				 var squareEl = $('#board .square-' + square);
+			  
+			  var background = '#fffc66'; //Tint of #a9a9a9
+			  if (squareEl.hasClass('black-3c85d') === true) {
+			    background = '#fffc66'; //Tint of #696969
+			  }
+
+			  squareEl.css('background', background);
+			}
+
+
+			//Return a list of captures and checks. Also evaluate them as good or bad in future
+			function captureAndChecks(){
+
+				var moves = chess.moves(); var c = [];
+
+			  // game over
+			  if (moves.length === 0) return;
+
+			   var index ;
+
+			  //Only show captures and checks
+			  for( index=0;index<moves.length;index++)
+			  {
+			  	var move = moves[index];
+
+			  	if (move.charAt(move.length-1)=='+')
+				  	c.push(move);
+
+				  if(move.search('x') !== -1)
+				  	c.push(move);
+
+			  	
+			  }			 
+			  if(c.length!=0)
+			  console.log(c);
+
+			}
+
+
+
 		function showTerritory(){
+
+
 			
 			var moves = chess.moves();
 
@@ -336,6 +533,7 @@ var KingE = [
 
 			  var index ;
 
+			  //Only show captures and checks
 			  for( index=0;index<moves.length;index++)
 			  {
 			  	var move = moves[index];
@@ -345,10 +543,7 @@ var KingE = [
 				else move = move.charAt(move.length-3) + move.charAt(move.length-2);
 
 			  	greySquare(move);
-			  }
-
-
-			 
+			  }			 
 
 		}
 
@@ -422,6 +617,9 @@ var KingE = [
 
 		function control(){
 
+
+			 init_sq();
+
 			var entries = Object.entries(board.position());
 
 
@@ -430,13 +628,32 @@ var KingE = [
 
 
 				}
+
+			//console.log(square_color);
+			removeGreySquares();
+			colorize();
+		}
+
+		function init_sq(){
+
+			square_color = [
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	[-20,-20,-20,-20,-20,-20,-20,-20],
+		        	];
+
 		}
 
 
 		function attackedSquares(s){
 			//console.log(s);
 
-			if(s.charAt(0)=='w' && (chess.fen().search(" w ") != -1) )
+			if(s.charAt(0)=='w'  )
 				{
 					//white pawns
 					if (s.charAt(1)=='P'){
@@ -444,22 +661,26 @@ var KingE = [
 							{
 								var t = parseInt(s.charAt(3));
 								t++;
-								greySquare('b'+t);
+								//greySquare('b'+t); 
+								whiteAttack('b',(t),1);
 							}
 						else if ( (s.charAt(2)=='h') && (parseInt(s.charAt(3))<8) )
 							{
 								var t = parseInt(s.charAt(3));
 								t++;
-								greySquare('g'+t);
+								//greySquare('g'+t); 
+								whiteAttack('g',(t),6);
 							}
 						else if (parseInt(s.charAt(3))<8)
 							{
 								var t = parseInt(s.charAt(3));
 								t++; var c = String.fromCharCode(s.charCodeAt(2) + 1);
 								//console.log(c);
-								greySquare(c+t);
+								//greySquare(c+t); 
+								whiteAttack(c,(t),s.charCodeAt(2) -97 +1);
 								c = String.fromCharCode(s.charCodeAt(2) - 1);
-								greySquare(c+t);
+								//greySquare(c+t); 
+								whiteAttack(c,(t),s.charCodeAt(2) -97 -1);
 							}
 
 					}
@@ -494,15 +715,17 @@ var KingE = [
 										
 							}
 
-
+							//king moves 
 							else {
 
 						var sqr = s.charAt(2) +s.charAt(3);
 							//console.log(sqr);
 						var moves = chess.moves({square: sqr});
 
+						kingMoves(sqr,1); // 1 = White
+
 							if (moves.length === 0) return;
-							console.log(moves);						
+							/*console.log(moves);						
 
 						  var index ;
 
@@ -515,13 +738,13 @@ var KingE = [
 							  else move = move.charAt(move.length-3) + move.charAt(move.length-2);
 
 							  	greySquare(move);
-							  }
+							  } */
 							}
 						}
 
 				}
 				//all black pieces
-			if(s.charAt(0)=='b' && (chess.fen().search(" b ") != -1))
+			if(s.charAt(0)=='b' ) //&& (chess.fen().search(" b ") != -1)
 			{
 				//black pawns
 					if (s.charAt(1)=='P'){
@@ -529,22 +752,26 @@ var KingE = [
 							{
 								var t = parseInt(s.charAt(3));
 								t--;
-								purpleSquare('b'+t);
+								//purpleSquare('b'+t); 
+								blackAttack('b',(t),1);
 							}
 						else if ( (s.charAt(2)=='h') && (parseInt(s.charAt(3))>0) )
 							{
 								var t = parseInt(s.charAt(3));
 								t--;
-								purpleSquare('g'+t);
+								//purpleSquare('g'+t); 
+								blackAttack('g',(t),6);
 							}
 						else if (parseInt(s.charAt(3))>0)
 							{
 								var t = parseInt(s.charAt(3));
 								t--; var c = String.fromCharCode(s.charCodeAt(2) + 1);
 								//console.log(c);
-								purpleSquare(c+t);
+								//purpleSquare(c+t); 
+								blackAttack(c,(t),s.charCodeAt(2) -97 +1);
 								c = String.fromCharCode(s.charCodeAt(2) - 1);
-								purpleSquare(c+t);
+								//purpleSquare(c+t); 
+								blackAttack(c,(t),s.charCodeAt(2) - 1 -97);
 							}
 
 					}
@@ -554,7 +781,8 @@ var KingE = [
 							if (s.charAt(1)=='N')
 							{
 										var sqr = s.charAt(2) +s.charAt(3);
-										var moves= knightMoves(sqr,0);
+										var moves= knightMoves(sqr,0); // can be written as only knightMoves(sqr,0);
+										//var moves has no actual purpose. 
 										
 							}
 
@@ -586,9 +814,11 @@ var KingE = [
 									var sqr = s.charAt(2) +s.charAt(3);
 										//console.log(sqr);
 									var moves = chess.moves({square: sqr});
+
+									kingMoves(sqr,0);
 									if (moves.length === 0) return;
 										
-										console.log(moves);		
+									/*	console.log(moves);		
 
 									  var index ;
 
@@ -600,7 +830,7 @@ var KingE = [
 										  else move = move.charAt(move.length-3) + move.charAt(move.length-2);
 
 										  	purpleSquare(move);
-										  }
+										  } */
 							}
 
 						}
@@ -609,7 +839,11 @@ var KingE = [
 
 		}
 
+		//Highlights all squares controlled by a knight on a specific square (i.e. squares controlled by knight on a4)
+
 		function knightMoves(s,color) {
+
+			// 's' is a string which provides the postion of knight i.e a4 and 'color' tells us whether it is black or white piece
 
 			//offset. All 8 possible moves of a knight.
 			var X = [ 2, 1, -1, -2, -2, -1, 1, 2 ]; 
@@ -633,10 +867,14 @@ var KingE = [
                 	//store values in an array
                 	c = String.fromCharCode(x + 97);
                 	//console.log(c+y);
-                	if(color===0) //Black Piece
-                	purpleSquare(c+y);
-                	else			//else white piece
-                	greySquare(c+y); 
+                	if(color===0) //Black Piece	                	
+	                	blackAttack(c,y,x);
+	                       	
+
+                	else	//else white piece	              	
+	                	whiteAttack(c,y,x);	              	
+		                	
+	                	
                 }
         } 
 
@@ -644,7 +882,11 @@ var KingE = [
 
 		}
 
+		//Highlights all squares controlled by a Rook on a specific square (i.e. squares controlled by rook on a4)
+
 		function rookMoves(s,color){
+
+			// 's' is a string which provides the postion of Rook i.e a4 and 'color' tells us whether it is black or white piece
 
 			
 			//get position of all pieces
@@ -661,17 +903,30 @@ var KingE = [
         	
         	//console.log(pos);
 
-        		//vertical up
+        		
         		//console.log(q+1);
+        		//We color all the vertical and horizontal squares controlled by Rook one by one until a piece is encountered.
+        		//This will require four for loops since a rook can theoritically move in 4 directions from a given square.
+
+        		//vertical up
 	        	for (i = q+1; i < 8; i++) 
 	        	{ 
 		        		c = String.fromCharCode(p + 97);
 	                	if(color===0)
-	                	purpleSquare(c+ (1+i) );
-	                else greySquare(c+ (1+i) );
 
+	                	//purpleSquare(c+ (1+i) ); 
+	                blackAttack(c,(1+i),p);
+
+	                else //greySquare(c+ (1+i) );
+	                 whiteAttack(c,(1+i),p);
+
+	                 	// Need to take into account battery
 	                	if(pos.indexOf(c+ (1+i)) != -1)
-	                		break;	
+	                		{
+	                			var piece = chess.get(c+ (1+i));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='r'));
+	                			else break;
+	                		}	
 
 	        	}
 	        	//vertical down
@@ -679,11 +934,15 @@ var KingE = [
 	        	{ 
 		        		c = String.fromCharCode(p + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (1+i) );
-	                else greySquare(c+ (1+i) );
+	                	 blackAttack(c,(1+i),p);
+	                else whiteAttack(c,(1+i),p);
 
 	                	if(pos.indexOf(c+ (1+i)) != -1)
-	                		break;
+	                		{
+	                			var piece = chess.get(c+ (1+i));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='r'));
+	                			else break;
+	                		}
 
 	        	}
 
@@ -692,11 +951,17 @@ var KingE = [
 	        	{ 
 		        		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (1+q) );
-	                else greySquare(c+ (1+q) );;
+	                	//purpleSquare(c+ (1+q) );
+	                	 blackAttack(c,(1+q),i);
+	                else //greySquare(c+ (1+q) ); 
+	                whiteAttack(c,(1+q),i);
 
 	                if(pos.indexOf(c+ (1+q) ) != -1)
-	                		break;
+	                		{
+	                			var piece = chess.get(c+ (1+q));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='r'));
+	                			else break;
+	                		}
 	                	
 
 	        	}
@@ -706,11 +971,17 @@ var KingE = [
 	        	{ 
 		        		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (1+q) );
-	                else greySquare(c+ (1+q) );;
+	                	//purpleSquare(c+ (1+q) );
+	                blackAttack(c,(1+q),i);
+	                else //greySquare(c+ (1+q) ); 
+	                whiteAttack(c,(1+q),i);
 
 	                if(pos.indexOf(c+ (1+q) ) != -1)
-	                		break;
+	                		{
+	                			var piece = chess.get(c+ (1+q));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='r'));
+	                			else break;
+	                		}
 	                	
 
 	        	}
@@ -718,8 +989,12 @@ var KingE = [
 
 		}
 
+		//Highlights all squares controlled by a bishop on a specific square (i.e. squares controlled by bishop on a4)
 
 		function bishopMoves(s,color){
+
+			// 's' is a string which provides the postion of Bishop i.e a4 and 'color' tells us whether it is black or white piece
+
 
 			//get position of all pieces
 			var entries = Object.entries(board.position());
@@ -734,17 +1009,26 @@ var KingE = [
         	var i,j; var c;
         	//console.log(p+" "+q);
 
+        	//We color all diagonal squares controlled by bishop one by one Until a piece is encountered.
+        	//This will require four for loops since a bishop can theoritically move in 4 directions from a given square.
+
         	//top right 
         	for( i = p+1,j=q+1 ; i <8 && j< 8;i++,j++){
         		//console.log(i);
 
         		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (j+1) );
-	                else greySquare(c+ (j+1));
+	                	//purpleSquare(c+ (j+1) ); 
+	                blackAttack(c,(1+j),i);
+	                else //greySquare(c+ (j+1)); 
+	                whiteAttack(c,(1+j),i);
 
 	                if(pos.indexOf(c+ (j+1) ) != -1)
-	                		break;	              
+	                		{
+	                			var piece = chess.get(c+ (1+j));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='b'));
+	                			else break;
+	                		}	              
 	                
         	}
 
@@ -754,11 +1038,17 @@ var KingE = [
 
         		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (j+1) );
-	                else greySquare(c+ (j+1));
+	                	//purpleSquare(c+ (j+1) );
+	                blackAttack(c,(1+j),i);
+	                else //greySquare(c+ (j+1));
+	                whiteAttack(c,(1+j),i);
 
 	                if(pos.indexOf(c+ (j+1) ) != -1)
-	                		break;	              
+	                		{
+	                			var piece = chess.get(c+ (1+j));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='b'));
+	                			else break;
+	                		}	              
 	                
         	}
 
@@ -768,11 +1058,17 @@ var KingE = [
 
         		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (j+1) );
-	                else greySquare(c+ (j+1));
+	                	//purpleSquare(c+ (j+1) );
+	                 blackAttack(c,(1+j),i);
+	                else //greySquare(c+ (j+1));
+	                 whiteAttack(c,(1+j),i);
 
 	                if(pos.indexOf(c+ (j+1) ) != -1)
-	                		break;	              
+	                		{
+	                			var piece = chess.get(c+ (1+j));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='b'));
+	                			else break;
+	                		}	              
 	                
         	}
 
@@ -782,16 +1078,261 @@ var KingE = [
 
         		c = String.fromCharCode(i + 97);
 		        		if(color===0)
-	                	purpleSquare(c+ (j+1) );
-	                else greySquare(c+ (j+1));
+	                	//purpleSquare(c+ (j+1) );
+	                blackAttack(c,(1+j),i);
+	                else //greySquare(c+ (j+1));
+	                whiteAttack(c,(1+j),i);
 
 	                if(pos.indexOf(c+ (j+1) ) != -1)
-	                		break;	              
+	                		{
+	                			var piece = chess.get(c+ (1+j));
+	                			if((piece['color']==chess.get(s)['color']) && (piece['type']=='q'||piece['type']=='b'));
+	                			else break;
+	                		}	              
 	                
         	}
 
 
 
+		}
+
+		function kingMoves(s,color) {
+
+			// 's' is a string which provides the postion of king i.e a4 and 'color' tells us whether it is black or white piece
+
+			//offset. All 8 possible moves of a knight.
+			var X = [ -1, -1, -1,  0, 0,  1, 1, 1 ]; 
+       		var Y = [ -1,  0,  1, -1, 1, -1, 0, 1 ]; 
+        var pos=[]; //Not Used currently
+
+        p = parseInt([s.charCodeAt(0)-97]);
+        q= parseInt([s.charAt(1)]);
+        var c; var x;var y;
+
+        	for (var i = 0; i < 8; i++) { 
+  
+            // Position of knight after move 
+            x = p + X[i]; 
+            y = q + Y[i]; 
+            
+  
+            // highlight the controlled squared.
+            if (x >= 0 && y >= 0 && x <= 8 && y <= 8 ) 
+                {
+                	//store values in an array
+                	c = String.fromCharCode(x + 97);
+                	//console.log(c+y);
+                	if(color===0) //Black Piece	                	
+	                	blackAttack(c,y,x);
+	                       	
+
+                	else	//else white piece	              	
+	                	whiteAttack(c,y,x);	              	
+		                	
+	                	
+                }
+        } 
+
+        	return pos;
+
+		}
+
+		function whiteAttack(c,y,x)
+
+			{
+	                	//greySquare(c+y);
+
+	                		if( (x>=0 && x< 8) && ((8-y)>=0 && (8-y)< 8) ) 
+	                			{
+	                			//console.log(square_color[8-y][x]);
+	                				if (square_color[8-y][x]==-20) square_color[8-y][x] = 1;
+	                					else
+	                						square_color[8-y][x] = square_color[8-y][x]+1;
+
+	                			}
+
+	                		//console.log ((8-y)+" "+(x));
+
+	                	}
+
+	    function blackAttack (c,y,x)
+	    {
+	                	//purpleSquare(c+y);
+
+	                		if( (x>=0 && x< 8) && ((8-y)>=0 && (8-y)< 8) ) 
+	                			{
+	                			//console.log(square_color[8-y][x]);
+	                				if (square_color[8-y][x]==-20) square_color[8-y][x] = -1;
+	                					else
+	                						square_color[8-y][x] = square_color[8-y][x]-1;
+
+	                			}
+
+	                		//console.log ((8-y)+" "+(x));
+
+	                	}
+
+	     //To color the squares based on the matrix 'sqaure_color'
+	    function colorize(){
+	    	
+
+	    	var c= 0;
+
+
+	    	var i,j;
+	    	for ( i=7;i>=0;i--){
+
+
+	    		for(j=0;j<8;j++){ //console.log(z[i][j]);
+	    			
+	    			//check value of each square and color each square based on that
+	    			if (square_color[i][j]===-20) ;
+	    			else if (square_color[i][j]===0) {c = String.fromCharCode(j + 97);yellowSquare(c+(8-i)); }
+	    			else if (square_color[i][j]>0) {c = String.fromCharCode(j + 97);greenSquare(c+(8-i),square_color[i][j]); }
+	    			else if (square_color[i][j]<0) {c = String.fromCharCode(j + 97);redSquare(c+(8-i),square_color[i][j]); }
+
+	    		}
+	    	}
+
+	    	//console.log(z);
+
+	    }
+
+
+
+	    function onDragStart (source, piece, position, orientation) {
+  // do not pick up pieces if the game is over
+  if (chess.game_over()) return false
+
+  // only pick up pieces for the side to move
+  if ((chess.turn() === 'w' && piece.search(/^b/) !== -1) ||
+      (chess.turn() === 'b' && piece.search(/^w/) !== -1)) {
+    return false
+  }
+}
+
+function onDrop (source, target) {
+  // see if the move is legal
+  var move = chess.move({
+    from: source,
+    to: target,
+    promotion: 'q' // NOTE: always promote to a queen for example simplicity
+  })
+
+  // illegal move
+  if (move === null) return 'snapback'
+
+}
+
+function onSnapEnd () {
+  board.position(chess.fen())
+  removeGreySquares();
+  control();
+}
+
+
+		function MCTS(){
+			var moves = chess.moves(); //get all moves
+			var currentpos = chess.fen(); //get current position 
+			var index; var arry = []; var index2; var result = []; var index3;
+			var draw=0; white=0;black=0;
+			var temppos;
+				//iterate through all the moves and evaluate them
+				for( index=0;index<moves.length;index++)
+			  {
+			  	var move = moves[index];
+
+			  	//make move
+			  	chess.move(move); board.position(chess.fen());
+
+					b_evaluation=0;
+					w_evaluation=0; 
+				
+			  		var entries = Object.entries(board.position());
+
+							  for (const [square, piece] of entries) 
+							  {
+				  					evaluate(piece+square);
+								}
+
+								//Store move with it's evaluation
+			   arry.push ([move, ((w_evaluation - b_evaluation)/100)] );
+			  chess.undo();  //undo the move made at line 1245
+			}
+
+			board.position(currentpos);
+
+			arry.sort(compareSecondCol);
+
+			if(arry.length>=5) arry = arry.slice(0,5);
+
+			var tmoves = [];
+
+			for (const [move, eval] of arry) 
+							  {
+				  					tmoves.push(move);
+								}
+
+			
+			for( index=0;index<tmoves.length;index++) //iterate through top 10 moves.
+			  {
+			  	chess.move(tmoves[index]); temppos= chess.fen(); draw=0; white=0;black=0
+
+
+			  		for( index2=0;index2<4;index2++)
+			  	{
+
+			  		//play random moves until draw or win.
+			  	while(!chess.in_checkmate()&&!chess.in_draw()&&!chess.in_stalemate()&&!chess.in_threefold_repetition())
+				  {
+				  	makeRandomMove();
+				  }
+				  console.log('while exited');
+
+				 
+				   if(chess.in_draw()) draw++;
+
+				   else if(chess.in_checkmate()) 
+						   {
+						   	if(chess.turn() === 'w') black ++; else white ++;
+						   }
+				   else  draw++;
+
+			   chess.load(temppos);
+
+			   	}
+			   	result.push([tmoves[index],draw,white,black]);
+
+			   	chess.undo();
+			  }
+
+			  chess.load(currentpos);
+			  board.position(currentpos);
+
+				console.log(result);			
+
+		}
+
+		function makeRandomMove () {
+  var possibleMoves = chess.moves()
+
+  // game over
+  if (possibleMoves.length === 0) return
+
+  var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+  chess.move(possibleMoves[randomIdx])
+  //console.log(possibleMoves[randomIdx]);
+}
+
+		function compareSecondCol(a,b){
+			if(a[1]===b[1]) return 0;
+			else
+				return (a[1]<b[1]) ? 1:-1;
+		}
+
+
+		function flipp(){
+			board.flip();
 		}
 
 
