@@ -46,7 +46,7 @@
     <div id="board" style="width: 450px"></div>
     <input class ="big "type="button" id="startBtn" value="Start" />
     <button onclick="flipp();">↻</button>
-    <button onclick="captureAndChecks();">Show Captures/Checks</button>
+    <button onclick="alert('Not Implemented Yet');">Show Captures/Checks</button>
     <button onclick="removeGreySquares();">Hide</button>
     <button onclick="control();">Territory/Control</button>
     <button onclick="showTerritory();"> Possible Moves</button> 	
@@ -63,7 +63,7 @@
     <br><input type="text" name="nextMove" id="nextMove"> 
     <button onclick="makeMove();"> Make a move</button>
     <input type="text" id="setPosition" > 
-    <button> Set up Position</button>
+    <button onclick="alert('Not Implemented Yet');"> Set up Position</button>
 	</div>
 
 
@@ -495,6 +495,7 @@ var KingE = [
 
 			//Return a list of captures and checks. Also evaluate them as good or bad in future
 			function captureAndChecks(){
+				
 
 				var moves = chess.moves(); var c = [];
 
