@@ -10,6 +10,10 @@
     <title>Chess Match</title>
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
     <style>
+
+    	svg{
+    		pointer-events: none;
+    	}
     	button{
 		   border: 1px solid black;
 		    font-size: 18px;
@@ -32,21 +36,30 @@
 		    font-size: 18px;
 		}
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.12/svg.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="js/chessboard-0.3.0.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+	<script src="js/raphael-2.2.8/raphael.js"></script>
+	
 
 </head>
 
-<body>
+<body id="myBody">
 
 
 	
 	<!--HTML part-->
-    <div id="board" style="width: 450px"></div>
+  
+    
+		<div id="board" style="width: 450px">
+		</div>
+
+  
+
     <input class ="big "type="button" id="startBtn" value="Start" />
     <button onclick="flipp();">↻</button>
-    <button onclick="alert('Not Implemented Yet');">Show Captures/Checks</button>
+    <button onclick="captureAndChecks();">Show Captures/Checks</button>
     <button onclick="removeGreySquares();">Hide</button>
     <button onclick="control();">Territory/Control</button>
     <button onclick="showTerritory();"> Possible Moves</button> 	
@@ -64,6 +77,7 @@
     <button onclick="makeMove();"> Make a move</button>
     <input type="text" id="setPosition" > 
     <button onclick="alert('Not Implemented Yet');"> Set up Position</button>
+    <!--<button onclick="drawArrow(10,1,90,90);"> Draw Arrow</button><!-->
 	</div>
 
 
@@ -71,6 +85,9 @@
 
 	<!--Javascript part-->
     <script type="text/javascript">
+
+
+    	
 
 
 		        var board = ChessBoard('board', {
@@ -84,6 +101,49 @@
 		});
 
 		        var chess = new Chess();
+		        // Creates canvas 320 × 200 at 10, 50
+		        var paper = Raphael(10, 66, 450, 450); var arrows; var ids= [];
+
+
+		        // initialize SVG.js delete it
+				var draw = SVG('board')
+
+				if(draw!=null)
+				draw.rect(100, 100).move(100, 50).fill('#f06')
+
+
+			
+
+
+
+			function drawArrow(from,to)
+				{
+
+					if (paper === undefined || paper === null) 
+						paper = Raphael(10, 66, 450, 450);
+
+				var ab= $('#board .square-' + from).offset()
+				var xy= $('#board .square-' + to).offset()
+
+
+			
+			
+
+			// Creates circle at x = 50, y = 40, with radius 10
+			//var circle = paper.circle(50, 40, 10).attr({strokewidth: "red"});
+
+			arrows = paper.path("M"+(ab['left']+18)+","+(ab['top']-38)+" L"+(xy['left']+18)+","+(xy['top']-38)+" ").attr({stroke: "red",'stroke-width': 5,'arrow-end':'classic', opacity: 0.5 });
+				// draw a arrow:
+				// move to 10,10, line to 90,90
+				ids.push(arrows)
+
+
+
+				}
+
+
+
+				
 
 		        	var b_evaluation;
 		        	var w_evaluation;
@@ -326,6 +386,14 @@ var KingE = [
 
 			//removes all grey squares
 			var removeGreySquares = function() {
+				if(ids!=null)				
+				for(var i = ids.length -1; i >= 0 ; i--){
+			    	ids[i].remove();
+			        ids.splice(i, 1);
+			    }
+			
+
+
 		  $('#board .square-55d63').css('background', '');
 		};
 
@@ -426,6 +494,8 @@ var KingE = [
 
 
 				function redSquare(square,shade){
+					//get position of square
+					var xy= $('#board .square-' + square).position()
 					
 					var squareEl = $('#board .square-' + square);
 
@@ -495,9 +565,10 @@ var KingE = [
 
 			//Return a list of captures and checks. Also evaluate them as good or bad in future
 			function captureAndChecks(){
+
 				
 
-				var moves = chess.moves(); var c = [];
+				var moves = chess.moves({ verbose: true }); var c = [];
 
 			  // game over
 			  if (moves.length === 0) return;
@@ -509,16 +580,30 @@ var KingE = [
 			  {
 			  	var move = moves[index];
 
-			  	if (move.charAt(move.length-1)=='+')
+			  	if (move['san'].charAt(move['san'].length-1)=='+')
 				  	c.push(move);
 
-				  if(move.search('x') !== -1)
+				  if(move['san'].search('x') !== -1)
 				  	c.push(move);
 
 			  	
 			  }			 
 			  if(c.length!=0)
+			  {
 			  console.log(c);
+
+			  for( index=0;index<c.length;index++)
+			  {
+			  	var arrow = c[index]; 
+			 
+			  	drawArrow(arrow['from'],arrow['to']);
+
+
+			  }
+
+				}
+
+
 
 			}
 
@@ -1331,6 +1416,42 @@ function onSnapEnd () {
 			else
 				return (a[1]<b[1]) ? 1:-1;
 		}
+
+		function drawArrow2(fromx, fromy, tox, toy){
+                //variables to be used when creating the arrow
+                var c = document.getElementById("myCanvas");
+                var ctx = c.getContext("2d");
+                var headlen = 10;
+
+                var angle = Math.atan2(toy-fromy,tox-fromx);
+
+                //starting path of the arrow from the start square to the end square and drawing the stroke
+                ctx.beginPath();
+                ctx.moveTo(fromx, fromy);
+                ctx.lineTo(tox, toy);
+                ctx.strokeStyle = "#cc0000";
+                ctx.lineWidth = 22;
+                ctx.stroke();
+
+                //starting a new path from the head of the arrow to one of the sides of the point
+                ctx.beginPath();
+                ctx.moveTo(tox, toy);
+                ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+                //path from the side point of the arrow, to the other side point
+                ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),toy-headlen*Math.sin(angle+Math.PI/7));
+
+                //path from the side point back to the tip of the arrow, and then again to the opposite side point
+                ctx.lineTo(tox, toy);
+                ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+                //draws the paths created above
+                ctx.strokeStyle = "#cc0000";
+                ctx.lineWidth = 10;
+                ctx.stroke();
+                ctx.fillStyle = "#cc0000";
+                ctx.fill();
+            }
 
 
 		function flipp(){
