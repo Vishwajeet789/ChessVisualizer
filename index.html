@@ -2,40 +2,43 @@
 <!--Take into account the batteries created by the pieces in the generate move functions--> 
 <!-- Implement functionality- move pieces with mouse|| DONE! --> 
 
-<!--TO-DO--> 
-<!--TO-DO--> 
+<!--Change input button type tag to button tags for consistency--> 
 
+<!--TO-DO--> 
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Chess Match</title>
+    <title>Chess Visualizer</title>
     <link rel="stylesheet" href="css/chessboard-0.3.0.css">
-    <style>
 
+    <style>
     	svg{
-    		pointer-events: none;
+    	   pointer-events: none;
     	}
+
     	button{
 		   border: 1px solid black;
-		    font-size: 18px;
-		    margin: 1px;
+		   font-size: 18px;
+		   margin: 1px;
 		}
 
 		button.big{
 		   border: 1px solid black;
-		    font-size: 18px;
-		    margin: 1px;
+		   font-size: 18px;
+		   margin: 1px;
 		}
 
 		input{
 		   border: 1px solid black;
-		    font-size: 18px;
+		   font-size: 18px;
 		}
 
 		input.big{
 		   border: 1px solid black;
-		    font-size: 18px;
+		   font-size: 18px;
 		}
     </style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.12/svg.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="js/chessboard-0.3.0.min.js"></script>
@@ -45,17 +48,9 @@
 
 </head>
 
-<body id="myBody">
-
-
-	
-	<!--HTML part-->
-  
-    
-		<div id="board" style="width: 450px">
-		</div>
-
-  
+<body id="myBody">	
+	<!--HTML part-->    
+	<div id="board" style="width: 450px"></div>
 
     <input class ="big "type="button" id="startBtn" value="Start" />
     <button onclick="flipp();">↻</button>
@@ -80,17 +75,9 @@
     <!--<button onclick="drawArrow(10,1,90,90);"> Draw Arrow</button><!-->
 	</div>
 
-
-
-
 	<!--Javascript part-->
     <script type="text/javascript">
-
-
-    	
-
-
-		        var board = ChessBoard('board', {
+ 	    var board = ChessBoard('board', {
 		  //orientation: 'black',
 		  draggable: true,
 		  dropOffBoard: 'trash',
@@ -102,7 +89,8 @@
 
 		        var chess = new Chess();
 		        // Creates canvas 320 × 200 at 10, 50
-		        var paper = Raphael(10, 66, 450, 450); var arrows; var ids= [];
+		        var paper = Raphael(10, 66, 450, 450); 
+		        var arrows; var ids= [];
 
 
 		        // initialize SVG.js delete it
@@ -132,7 +120,7 @@
 			// Creates circle at x = 50, y = 40, with radius 10
 			//var circle = paper.circle(50, 40, 10).attr({strokewidth: "red"});
 
-			arrows = paper.path("M"+(ab['left']+18)+","+(ab['top']-38)+" L"+(xy['left']+18)+","+(xy['top']-38)+" ").attr({stroke: "purple",'stroke-width': 8,'arrow-end':'classic', opacity: 0.55 });
+			arrows = paper.path("M"+(ab['left']+18)+","+(ab['top']-38)+" L"+(xy['left']+18)+","+(xy['top']-38)+" ").attr({stroke: "blue",'stroke-linecap':'round','stroke-linejoin':'round','stroke-width': 4.5,'arrow-end':'block', opacity: 0.55 });
 				// draw a arrow:
 				// move to 10,10, line to 90,90
 				ids.push(arrows)
